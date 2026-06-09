@@ -13,6 +13,7 @@ export class GameScene extends Phaser.Scene {
   private paddle!: Phaser.Physics.Arcade.Image;
   private ball!: Phaser.Physics.Arcade.Image;
   private bricks!: Phaser.Physics.Arcade.StaticGroup;
+  private brickCollider!: Phaser.Physics.Arcade.Collider;
 
   // 状态
   private score = 0;
@@ -183,7 +184,7 @@ export class GameScene extends Phaser.Scene {
 
   // ── 碰撞设置 ─────────────────────────────
   private setupCollisions() {
-    // 小球 vs 挡板
+    // 小球 vs 挡板（只注册一次，挡板不重建）
     this.physics.add.collider(
       this.ball,
       this.paddle,
@@ -191,9 +192,22 @@ export class GameScene extends Phaser.Scene {
       undefined,
       this
     );
+    // 小球 vs 砖块（保存引用，换关时可销毁重建）
+    this.brickCollider = this.physics.add.collider(
+      this.ball,
+      this.bricks,
+      this.handleBallBrickCollision,
+      undefined,
+      this
+    );
+  }
 
-    // 小球 vs 砖块
-    this.physics.add.collider(
+  // ── 重新注册砖块碰撞器（换关时调用）────────
+  private resetBrickCollider() {
+    if (this.brickCollider) {
+      this.physics.world.removeCollider(this.brickCollider);
+    }
+    this.brickCollider = this.physics.add.collider(
       this.ball,
       this.bricks,
       this.handleBallBrickCollision,
@@ -337,7 +351,8 @@ export class GameScene extends Phaser.Scene {
     this.brickDataMap.clear();
     this.bricks.clear(true, true);
     this.createBricks(this.getDefaultLevel());
-     this.bricks.refresh();
+    this.bricks.refresh();
+    this.resetBrickCollider(); // ← 重新注册碰撞器，指向新的 group
     this.emitUI();
 
     const txt = this.add.text(
