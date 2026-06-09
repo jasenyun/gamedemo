@@ -51,7 +51,6 @@ export class GameOverScene extends Phaser.Scene {
     btn.on('pointerover', () => btn.setStyle({ color: '#ffd740' }));
     btn.on('pointerout', () => btn.setStyle({ color: '#ffffff' }));
     btn.on('pointerdown', () => {
-      this.scene.stop('UIScene');
       this.scene.start('GameScene');
     });
 

@@ -35,6 +35,9 @@ export class GameScene extends Phaser.Scene {
     this.ballLaunched = false;
     this.brickDataMap.clear();
 
+    // 确保物理引擎是运行状态（gameOver 里会 pause）
+    this.physics.resume();
+
     // 背景图（使用加载好的图片）
     this.add.image(
       GAME_CONFIG.WIDTH / 2,
@@ -368,32 +371,81 @@ export class GameScene extends Phaser.Scene {
 
   // ── 游戏结束 ─────────────────────────────
   private gameOver() {
-     this.ball.setVelocity(0, 0);
-  this.scene.stop('UIScene');
-  this.cameras.main.fadeOut(600, 0, 0, 0);
-  this.cameras.main.once('camerafadeoutcomplete', () => {
-    this.scene.start('GameOverScene', {
-      score: this.score,
-      level: this.level,
-    });
-  });
-    // this.ball.setVelocity(0, 0);
-    // this.add.text(
-    //   GAME_CONFIG.WIDTH / 2,
-    //   GAME_CONFIG.HEIGHT / 2 - 20,
-    //   'GAME OVER',
-    //   { fontSize: '32px', color: '#ff4081', fontFamily: 'monospace' }
-    // ).setOrigin(0.5);
-    // this.add.text(
-    //   GAME_CONFIG.WIDTH / 2,
-    //   GAME_CONFIG.HEIGHT / 2 + 20,
-    //   `最终得分: ${this.score}`,
-    //   { fontSize: '18px', color: '#ffffff', fontFamily: 'monospace' }
-    // ).setOrigin(0.5);
+    this.ball.setVelocity(0, 0);
+    this.ballLaunched = false;
+    this.physics.pause();
 
-    // this.time.delayedCall(2000, () => {
-    //   this.scene.restart();
-    // });
+    const W = GAME_CONFIG.WIDTH;
+    const H = GAME_CONFIG.HEIGHT;
+
+    // 遮罩层
+    const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7)
+      .setDepth(10);
+
+    this.add.text(W / 2, H / 2 - 60, 'GAME OVER', {
+      fontSize: '36px', color: '#ff4081',
+      fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(11);
+
+    this.add.text(W / 2, H / 2 - 10, `得分：${this.score}`, {
+      fontSize: '22px', color: '#ffd740', fontFamily: 'monospace',
+    }).setOrigin(0.5).setDepth(11);
+
+    this.add.text(W / 2, H / 2 + 30, `第 ${this.level} 关`, {
+      fontSize: '16px', color: '#aaaaaa', fontFamily: 'monospace',
+    }).setOrigin(0.5).setDepth(11);
+
+    // 再来一次按钮
+    const btn = this.add.text(W / 2, H / 2 + 90, '再来一次', {
+      fontSize: '22px', color: '#ffffff',
+      fontFamily: 'monospace',
+      backgroundColor: '#7c4dff',
+      padding: { x: 24, y: 10 },
+    }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
+
+    btn.on('pointerover', () => btn.setStyle({ color: '#ffd740' }));
+    btn.on('pointerout', () => btn.setStyle({ color: '#ffffff' }));
+    btn.on('pointerdown', () => {
+      // 直接在场景内重置，不跳转场景
+      overlay.destroy();
+      this.restartGame();
+    });
+  }
+
+  // ── 场景内重置（不跳转场景）─────────────────
+  private restartGame() {
+    // 清理所有游戏对象
+    this.children.removeAll(true);
+    this.physics.resume();
+
+    // 重置状态
+    this.score = 0;
+    this.lives = 3;
+    this.level = 1;
+    this.ballLaunched = false;
+    this.brickDataMap.clear();
+
+    // 重建所有对象
+    this.add.image(
+      GAME_CONFIG.WIDTH / 2, GAME_CONFIG.HEIGHT / 2, 'bg'
+    ).setDisplaySize(GAME_CONFIG.WIDTH, GAME_CONFIG.HEIGHT).setDepth(0);
+
+    this.createPaddle();
+    this.createBall();
+    this.createBricks(this.getDefaultLevel());
+    this.setupCollisions();
+    this.setupInput();
+    this.emitUI();
+
+    const hint = this.add.text(
+      GAME_CONFIG.WIDTH / 2,
+      GAME_CONFIG.HEIGHT / 2 + 60,
+      '点击 / 按空格 发射',
+      { fontSize: '16px', color: '#aaaaaa', fontFamily: 'monospace' }
+    ).setOrigin(0.5);
+
+    this.input.once('pointerdown', () => { hint.destroy(); this.launchBall(); });
+    this.input.keyboard!.once('keydown-SPACE', () => { hint.destroy(); this.launchBall(); });
   }
 
   // ── 工具方法 ─────────────────────────────
