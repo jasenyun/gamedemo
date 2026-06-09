@@ -1,0 +1,13 @@
+---
+description: 
+alwaysApply: true
+enabled: true
+updatedAt: 2026-06-09T06:59:23.354Z
+provider: 
+---
+
+- 严格遵循Phaser 3的开发文档
+- 所有游戏场景（Scene）必须继承自Phaser.Scene。
+- 所有的资源路径都必须是相对路径。
+- 画布必须控制1080p分辨率
+- 所有的动画都要以atlas为基础
