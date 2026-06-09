@@ -62,7 +62,8 @@ export class GameScene extends Phaser.Scene {
       '点击 / 按空格 发射',
       {
         fontSize: '16px',
-        color: '#aaaaaa',
+        color: '#ffffff',
+        fontStyle: 'bold',
         fontFamily: 'monospace',
       }
     ).setOrigin(0.5);
@@ -333,7 +334,8 @@ export class GameScene extends Phaser.Scene {
       GAME_CONFIG.WIDTH / 2,
       GAME_CONFIG.HEIGHT / 2,
       '点击重新发射',
-      { fontSize: '16px', color: '#aaaaaa', fontFamily: 'monospace' }
+      { fontSize: '20px',         color: '#ffffff',
+        fontStyle: 'bold', fontFamily: 'monospace' }
     ).setOrigin(0.5);
 
     this.input.once('pointerdown', () => {

@@ -36,8 +36,8 @@ export class StartScene extends Phaser.Scene {
       GAME_CONFIG.HEIGHT / 2 + 40,
       '点击开始',
       {
-        fontSize: '22px',
-        color: '#ffffff',
+        fontSize: '26px',
+        color: '#000000',
         fontFamily: 'monospace',
       }
     ).setOrigin(0.5);
